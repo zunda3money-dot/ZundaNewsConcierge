@@ -181,6 +181,87 @@ class AIClient:
         self._client = Anthropic(api_key=api_key)
 
     def generate(self, prompt: str, max_tokens: int = 2048) -> str:
+        return self._generate_with_retry(prompt, max_tokens=max_tokens)
+
+    def _generate_with_retry(
+        self,
+        prompt: str,
+        max_tokens: int = 2048,
+        max_attempts: int = 3,
+        base_wait_sec: float = 60.0,
+    ) -> str:
+        """Gemini/Claude 呼び出し本体 + 一時的エラーへの再試行。
+
+        対象エラー:
+          - 503 UNAVAILABLE (Gemini が高負荷で一時的に応答できない)
+          - 502 / 504 (上流ゲートウェイ系の一時障害)
+          - 429 RATE_LIMITED (短期スパイク; レート制限の一部)
+
+        固定の指数バックオフ (60s → 180s → 300s) で最大 3 回試行。
+        SDK 内部のリトライとは別に、外側でロバストに包むイメージ。
+        """
+        last_err: Exception | None = None
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return self._generate_once(prompt, max_tokens=max_tokens)
+            except Exception as e:
+                if not self._is_transient(e):
+                    # 非一時的エラー (例: 認証失敗、無効なモデル名) は即座に上げる
+                    raise
+                last_err = e
+                if attempt == max_attempts:
+                    break
+                wait = base_wait_sec * attempt  # 60s, 120s, ...
+                # 指数寄りに調整: 60, 180, 300
+                wait = min(60 * (3 ** (attempt - 1)), 300)
+                logger.warning(
+                    "AI 呼び出し失敗 (%s) attempt=%d/%d, %.0fs 後にリトライ",
+                    type(e).__name__,
+                    attempt,
+                    max_attempts,
+                    wait,
+                )
+                import time
+
+                time.sleep(wait)
+        # 全試行失敗
+        raise RuntimeError(
+            f"AI 呼び出しが {max_attempts} 回連続で失敗しました: {last_err}"
+        ) from last_err
+
+    @staticmethod
+    def _is_transient(err: Exception) -> bool:
+        """503/502/504/429 等の一時的エラーかどうか。"""
+        # google-genai
+        try:
+            from google.genai import errors as genai_errors  # type: ignore
+
+            if isinstance(err, genai_errors.ServerError):
+                return True  # 5xx すべて一時的扱い
+            if isinstance(err, genai_errors.ClientError):
+                code = getattr(err, "code", None) or getattr(err, "status_code", None)
+                return code == 429
+        except ImportError:
+            pass
+        # anthropic
+        try:
+            from anthropic import APIStatusError, RateLimitError  # type: ignore
+
+            if isinstance(err, RateLimitError):
+                return True
+            if isinstance(err, APIStatusError):
+                return getattr(err, "status_code", 0) in (502, 503, 504, 529)
+        except ImportError:
+            pass
+        # 文字列ベースのフォールバック (型を動的に取れない環境向け)
+        s = str(err).lower()
+        return any(
+            x in s
+            for x in ("503", "unavailable", "502", "504", "rate_limit", "429")
+        )
+
+    def _generate_once(self, prompt: str, max_tokens: int = 2048) -> str:
+        """1 回だけの呼び出し (リトライなし)。"""
         if self.provider == "gemini":
             resp = self._gemini_client.models.generate_content(
                 model=self._gemini_model_name,
@@ -193,7 +274,6 @@ class AIClient:
                 max_tokens=max_tokens,
                 messages=[{"role": "user", "content": prompt}],
             )
-            # content blocks を結合
             parts = []
             for block in resp.content:
                 text = getattr(block, "text", None)
