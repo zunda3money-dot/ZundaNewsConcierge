@@ -1,6 +1,6 @@
 # 🚀 Zundamon News Concierge 実装進捗
 
-**最終更新**: 2026-04-28 (🎉 **GitHub 公開完了 + 5人格ユーザーテストで QUICK_START 改良**)
+**最終更新**: 2026-04-29 (🛡 **本番初実トラブル対応: Gemini 503 エラーへの自動リトライ実装**)
 
 ## 🌐 公開リポジトリ
 
@@ -106,6 +106,17 @@ Claude が実施可能な作業のみで集計:
 - 旧 `google-generativeai` (deprecated) → 後継 `google-genai`
 - デフォルトモデル `gemini-1.5-flash` (404) → `gemini-2.5-flash` (現行)
 - viewers がフォーク時に詰むのを予防
+
+### ⑧ 本番初トラブル対応 — Gemini 503 自動リトライ (2026-04-29)
+- **発生**: 4/28 19:00 JST 予定の cron が GitHub Actions の混雑で **6 時間遅延**、4/29 1:28 JST に実行 → そのタイミングで Gemini API も高負荷で **503 UNAVAILABLE** を返した
+- **エラーハンドラは正常動作**: Discord に「⚠️ Zundamon News Concierge エラー」が届いて主が気づけた
+- **対策実装**: `AIClient` に外側リトライ層を追加
+  - 503/502/504 (ServerError) と 429 (RateLimit) を一時的エラーとして判定
+  - 60s → 180s → 300s の指数バックオフで最大 3 回試行
+  - 認証失敗等の非一時的エラーは即座に上げて無駄リトライ防止
+  - Gemini と Claude 両方の SDK エラー型に対応
+- **手動リトライで成功配信確認** (4/29 のテスト)
+- TROUBLESHOOTING に 503 ケースのユーザー向けガイドを追加
 
 ### ⑦ 5 人格ユーザーテストによる QUICK_START 改良 (2026-04-28)
 - **Web 調査**: GitHub Actions / Use this template / Gmail App Password / Discord Webhook の各カテゴリで非エンジニアの躓きパターンを調査
