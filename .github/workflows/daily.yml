@@ -1,0 +1,49 @@
+name: Daily News Digest
+
+# 毎日 2 回配信:
+#   - 朝のレポート 06:00 JST = 21:00 UTC (前日)
+#   - 夕方のレポート 19:00 JST = 10:00 UTC
+# 配信時刻を変えたい場合は cron 文字列を編集してください。
+# UTC 時刻の検算は https://crontab.guru/ が便利です。
+on:
+  schedule:
+    - cron: '0 21 * * *'   # 朝 06:00 JST
+    - cron: '0 10 * * *'   # 夕 19:00 JST
+  workflow_dispatch:  # 手動実行ボタン (GitHub UI から)
+
+permissions:
+  contents: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run digest
+        env:
+          # AI プロバイダ (どちらか片方あれば動く)
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # 配信チャネル (どちらか片方あれば動く、両方あれば両方に届く)
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          GMAIL_FROM: ${{ secrets.GMAIL_FROM }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          # email_to は config.yaml に書いても OK だが、Secret 化すれば
+          # config.yaml を編集せずに済む (QUICK_START 推奨方式)
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          PYTHONUNBUFFERED: '1'
+        run: python -m scripts.run

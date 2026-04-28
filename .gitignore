@@ -1,0 +1,42 @@
+# --- Secrets (絶対にコミットしない) ---
+config.yaml
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.yaml
+secrets/
+credentials.json
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+*.egg-info/
+build/
+dist/
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# --- Runtime artifacts ---
+*.log
+logs/
+cache/
+.cache/
+output/

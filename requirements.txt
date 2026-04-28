@@ -1,0 +1,9 @@
+feedparser>=6.0.11
+google-genai>=1.0.0
+anthropic>=0.39.0
+requests>=2.32.0
+PyYAML>=6.0.2
+chardet>=5.2.0
+python-Levenshtein>=0.25.1
+beautifulsoup4>=4.12.3
+yfinance>=0.2.40

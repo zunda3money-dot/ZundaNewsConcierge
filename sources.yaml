@@ -1,0 +1,26 @@
+# ============================================
+# RSS ソース定義
+# ============================================
+# 全て無料で利用可能なフィード。
+# 有料ソース (日経電子版、X API 等) は v1.1 以降で対応。
+
+sources:
+  - name: Bloomberg Japan - Top
+    url: https://assets.wor.jp/rss/rdf/bloomberg/top.rdf
+    category: 総合
+
+  - name: Bloomberg Japan - Markets
+    url: https://assets.wor.jp/rss/rdf/bloomberg/markets.rdf
+    category: 市場
+
+  - name: Reuters Japan - Top
+    url: https://assets.wor.jp/rss/rdf/reuters/top.rdf
+    category: 総合
+
+  - name: Reuters Japan - Business
+    url: https://assets.wor.jp/rss/rdf/reuters/business.rdf
+    category: ビジネス
+
+  - name: Investing.com Japan - News
+    url: https://jp.investing.com/rss/news.rss
+    category: マーケット
