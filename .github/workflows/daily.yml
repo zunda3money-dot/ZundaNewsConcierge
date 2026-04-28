@@ -1,14 +1,21 @@
 name: Daily News Digest
 
 # 毎日 2 回配信:
-#   - 朝のレポート 06:00 JST = 21:00 UTC (前日)
-#   - 夕方のレポート 19:00 JST = 10:00 UTC
+#   - 朝のレポート 06:13 JST = 21:13 UTC (前日)
+#   - 夕方のレポート 19:13 JST = 10:13 UTC
+#
+# ⚠️ 「:00 ちょうど」を避けて :13 にしている理由:
+#   GitHub Actions の cron は世界中の :00 ジョブが殺到するため、
+#   無料枠では遅延 (数時間) または完全 skip されることがある。
+#   公式が「混雑時間帯を避けて」と推奨。
+#   https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+#
 # 配信時刻を変えたい場合は cron 文字列を編集してください。
 # UTC 時刻の検算は https://crontab.guru/ が便利です。
 on:
   schedule:
-    - cron: '0 21 * * *'   # 朝 06:00 JST
-    - cron: '0 10 * * *'   # 夕 19:00 JST
+    - cron: '13 21 * * *'   # 朝 06:13 JST
+    - cron: '13 10 * * *'   # 夕 19:13 JST
   workflow_dispatch:  # 手動実行ボタン (GitHub UI から)
 
 permissions:

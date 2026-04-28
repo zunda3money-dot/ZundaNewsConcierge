@@ -1,6 +1,6 @@
 # 📰 Zundamon 投資ニュースコンシェルジュ
 
-> **朝6:00 + 夕19:00 の 1日2回、AIが厳選したあなた専用の投資ニュースが Discord または Gmail に届く。**
+> **朝6:13 + 夕19:13 の 1日2回、AIが厳選したあなた専用の投資ニュースが Discord または Gmail に届く。**
 > セットアップ30分、運用コスト月0円、自分のPCは起動不要。
 
 [![Setup Guide](https://img.shields.io/badge/setup-quest-brightgreen)](./SETUP_GUIDE.md)
