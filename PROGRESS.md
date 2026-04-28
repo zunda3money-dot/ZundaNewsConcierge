@@ -1,6 +1,13 @@
 # 🚀 Zundamon News Concierge 実装進捗
 
-**最終更新**: 2026-04-27 (🎉 **差別化機能 2 件追加: 買い増しシグナル + 反対論点併記**)
+**最終更新**: 2026-04-28 (🎉 **GitHub 公開完了 + 5人格ユーザーテストで QUICK_START 改良**)
+
+## 🌐 公開リポジトリ
+
+**https://github.com/zunda3money-dot/ZundaNewsConcierge** (Public Template)
+
+- Test Setup workflow 本番環境 ✅ Success 確認済み
+- Discord 経由のセットアップが GitHub Actions ランナー上で動作確認
 
 ---
 
@@ -99,6 +106,26 @@ Claude が実施可能な作業のみで集計:
 - 旧 `google-generativeai` (deprecated) → 後継 `google-genai`
 - デフォルトモデル `gemini-1.5-flash` (404) → `gemini-2.5-flash` (現行)
 - viewers がフォーク時に詰むのを予防
+
+### ⑦ 5 人格ユーザーテストによる QUICK_START 改良 (2026-04-28)
+- **Web 調査**: GitHub Actions / Use this template / Gmail App Password / Discord Webhook の各カテゴリで非エンジニアの躓きパターンを調査
+- **5 人格を組成して walkthrough**:
+  - ①田中真理子 (45歳・専業主婦) → Step 3 で 80% 離脱予測
+  - ②佐藤健一 (32歳・営業) → 完走可能性 70%
+  - ③山本悦子 (58歳・公務員) → 95% 離脱予測
+  - ④鈴木美咲 (27歳・IT総務) → 完走 95%、SNS 拡散候補
+  - ⑤鈴木和夫 (62歳・退職者) → 99% 離脱、家族支援必須層
+- **改良点 9 件を反映**:
+  - 完成プレビューを冒頭に追加
+  - AI Studio 英語画面に Chrome 翻訳手順を明記
+  - API キー画面 / Secrets 画面への直リンク導線
+  - Use this template と Code 緑ボタンの混同防止注記
+  - Secret Name は手打ち禁止 (コピペ必須) を強調
+  - Gmail 2段階認証必須を Gmail ルート冒頭に
+  - アプリパスワード「スペース許容」を強調
+  - 赤い × 時のサマリー読み方を明記
+  - 用意するもの欄に各☑の用途を併記
+- 結果: ④鈴木美咲レベルなら 7 分完走、③山本悦子レベルでも家族支援なしで完走見込み
 
 ### ⑥ 差別化機能 — 「他のニュースアプリにない」2 機能
 **EP19 で打ち出す目玉**:
