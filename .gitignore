@@ -40,3 +40,8 @@ logs/
 cache/
 .cache/
 output/
+
+# --- Author-only local notes (台本反映票など EP19 制作者用) ---
+EP*_SCRIPT_REFLECTION.md
+EP*_NOTES.md
+*.local.md
