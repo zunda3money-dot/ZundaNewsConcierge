@@ -183,12 +183,14 @@ class AIClient:
     def generate(self, prompt: str, max_tokens: int = 2048) -> str:
         return self._generate_with_retry(prompt, max_tokens=max_tokens)
 
+    # リトライ間隔 (秒)。Gemini ピーク時間帯の 503 連発に耐えるため長めに取る。
+    # 90 + 300 + 600 = 約 17 分。 daily.yml の timeout-minutes: 20 内に収まる。
+    _RETRY_WAITS_SEC = (90, 300, 600)
+
     def _generate_with_retry(
         self,
         prompt: str,
         max_tokens: int = 2048,
-        max_attempts: int = 3,
-        base_wait_sec: float = 60.0,
     ) -> str:
         """Gemini/Claude 呼び出し本体 + 一時的エラーへの再試行。
 
@@ -197,11 +199,12 @@ class AIClient:
           - 502 / 504 (上流ゲートウェイ系の一時障害)
           - 429 RATE_LIMITED (短期スパイク; レート制限の一部)
 
-        固定の指数バックオフ (60s → 180s → 300s) で最大 3 回試行。
+        指数バックオフ (90s → 300s → 600s) で最大 4 回試行 (初回 + 3 リトライ)。
         SDK 内部のリトライとは別に、外側でロバストに包むイメージ。
         """
         last_err: Exception | None = None
-        for attempt in range(1, max_attempts + 1):
+        attempts = len(self._RETRY_WAITS_SEC) + 1  # 初回 + リトライ回数
+        for attempt in range(1, attempts + 1):
             try:
                 return self._generate_once(prompt, max_tokens=max_tokens)
             except Exception as e:
@@ -209,16 +212,14 @@ class AIClient:
                     # 非一時的エラー (例: 認証失敗、無効なモデル名) は即座に上げる
                     raise
                 last_err = e
-                if attempt == max_attempts:
-                    break
-                wait = base_wait_sec * attempt  # 60s, 120s, ...
-                # 指数寄りに調整: 60, 180, 300
-                wait = min(60 * (3 ** (attempt - 1)), 300)
+                if attempt > len(self._RETRY_WAITS_SEC):
+                    break  # リトライ予算使い切った
+                wait = self._RETRY_WAITS_SEC[attempt - 1]
                 logger.warning(
                     "AI 呼び出し失敗 (%s) attempt=%d/%d, %.0fs 後にリトライ",
                     type(e).__name__,
                     attempt,
-                    max_attempts,
+                    attempts,
                     wait,
                 )
                 import time
@@ -226,7 +227,7 @@ class AIClient:
                 time.sleep(wait)
         # 全試行失敗
         raise RuntimeError(
-            f"AI 呼び出しが {max_attempts} 回連続で失敗しました: {last_err}"
+            f"AI 呼び出しが {attempts} 回連続で失敗しました: {last_err}"
         ) from last_err
 
     @staticmethod

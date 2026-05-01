@@ -24,7 +24,10 @@ permissions:
 jobs:
   digest:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Gemini が一時的に 503 を返した時、リトライ (90s + 300s + 600s = 約 17 分)
+    # を完走できるよう余裕を持たせる。GitHub Actions 無料枠は月 2000 分なので
+    # 1 日 2 回 × 30 日 × 20 分 = 1200 分で十分収まる。
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
